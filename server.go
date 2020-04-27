@@ -28,5 +28,6 @@ func main() {
 	api.HandleFunc("/books", timer(getAllBooks)).Methods(http.MethodGet)
 	api.HandleFunc("/books/authors/{author}", timer(getAllBooksByAuthor)).Methods(http.MethodGet)
 	api.HandleFunc("/books/title/{title}", timer(getAllBooksByTitle)).Methods(http.MethodGet)
+	api.HandleFunc("/books/isbn/{isbn}", timer(getBookByISBN)).Methods(http.MethodGet)
 	log.Fatalln(http.ListenAndServe(":8080", r))
 }

@@ -99,6 +99,40 @@ func getAllBooksByAuthor(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func getBookByISBN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	pathParams := mux.Vars(r)
+	limit, err := getLimitParam(r)
+	skip, err := getSkipParam(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "invalid datatype for parameter"}`))
+		return
+	}
+	ISBN := pathParams["isbn"]
+	data := books.GetAllBooks(limit, skip)
+	filteredData := []*loader.BookData{}
+	for _, b := range *data {
+		if strings.Contains(strings.ToLower(b.ISBN), strings.ToLower(ISBN)) {
+			filteredData = append(filteredData, b)
+		}
+	}
+	if len(filteredData) > 1 {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "more than 1 book with matching ISBN"}`))
+		return
+	}
+	b, err := json.Marshal(filteredData)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "error marshalling data"}`))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+	return
+}
+
 func getLimitParam(r *http.Request) (int, error) {
 	limit := 0
 	queryParams := r.URL.Query()
