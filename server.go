@@ -14,7 +14,7 @@ var (
 )
 
 func init() {
-	books = &datastore.Assets{}
+	books = &datastore.Books{}
 	books.Initialize()
 }
 
