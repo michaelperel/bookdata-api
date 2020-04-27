@@ -14,8 +14,8 @@ import (
 )
 
 func timer(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
-	start := time.Now()
 	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
 		f(w, r)
 		log.Printf("%s took %v\n", r.RequestURI, time.Since(start))
 	}
@@ -152,11 +152,13 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte(`{"error": "error reading request body"}`))
+		return
 	}
 	var b loader.BookData
 	if err = json.Unmarshal(body, &b); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(`{"error": "error marshalling data"}`))
+		return
 	}
 	books.AddBook(b)
 	w.WriteHeader(http.StatusOK)
