@@ -1,6 +1,7 @@
 package datastore
 
 import (
+	"fmt"
 	"github.com/matt-FFFFFF/bookdata-api/loader"
 )
 
@@ -24,4 +25,28 @@ func (b *Books) GetAllBooks(limit, skip int) *[]*loader.BookData {
 	}
 	ret := (*b.Store)[skip:limit]
 	return &ret
+}
+
+func (b *Books) AddBook(book loader.BookData) {
+	updatedStore := append(*b.Store, &book)
+	b.Store = &updatedStore
+}
+
+func (b *Books) DeleteBook(isbn string) error {
+	i := -1
+	for j, book := range *b.Store {
+		if book.ISBN == isbn {
+			i = j
+			break
+		}
+	}
+	if i == -1 {
+		return fmt.Errorf("book with '%s' ISBN not found.", isbn)
+	}
+	// delete without memory leak
+	// https://github.com/golang/go/wiki/SliceTricks
+	copy((*b.Store)[i:], (*b.Store)[i+1:])
+	(*b.Store)[len(*b.Store)-1] = nil // or the zero value of T
+	*b.Store = (*b.Store)[:len(*b.Store)-1]
+	return nil
 }

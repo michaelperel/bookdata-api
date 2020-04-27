@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"github.com/gorilla/mux"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -130,6 +131,35 @@ func getBookByISBN(w http.ResponseWriter, r *http.Request) {
 	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(b)
+	return
+}
+
+func deleteBookByISBN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	pathParams := mux.Vars(r)
+	ISBN := pathParams["isbn"]
+	if err := books.DeleteBook(ISBN); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "book not found."}`))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func createBook(w http.ResponseWriter, r *http.Request) {
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(`{"error": "error reading request body"}`))
+	}
+	var b loader.BookData
+	if err = json.Unmarshal(body, &b); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "error marshalling data"}`))
+	}
+	books.AddBook(b)
+	w.WriteHeader(http.StatusOK)
 	return
 }
 

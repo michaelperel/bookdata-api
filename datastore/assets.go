@@ -2,6 +2,7 @@ package datastore
 
 import (
 	"encoding/csv"
+	"fmt"
 	"github.com/matt-FFFFFF/bookdata-api/loader"
 	"os"
 	"path/filepath"
@@ -60,4 +61,28 @@ func (a *Assets) csvFile() string {
 	_, filename, _, _ := runtime.Caller(0)
 	rootDir := filepath.Dir(filepath.Dir(filename))
 	return filepath.Join(rootDir, "assets", "books.csv")
+}
+
+func (a *Assets) AddBook(book loader.BookData) {
+	updatedStore := append(*a.Store, &book)
+	a.Store = &updatedStore
+}
+
+func (a *Assets) DeleteBook(isbn string) error {
+	i := -1
+	for j, book := range *a.Store {
+		if book.ISBN == isbn {
+			i = j
+			break
+		}
+	}
+	if i == -1 {
+		return fmt.Errorf("book with '%s' ISBN not found.", isbn)
+	}
+	// delete without memory leak
+	// https://github.com/golang/go/wiki/SliceTricks
+	copy((*a.Store)[i:], (*a.Store)[i+1:])
+	(*a.Store)[len(*a.Store)-1] = nil // or the zero value of T
+	*a.Store = (*a.Store)[:len(*a.Store)-1]
+	return nil
 }

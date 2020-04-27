@@ -8,4 +8,6 @@ import "github.com/matt-FFFFFF/bookdata-api/loader"
 type BookStore interface {
 	Initialize()
 	GetAllBooks(limit, skip int) *[]*loader.BookData
+	AddBook(loader.BookData)
+	DeleteBook(isbn string) error
 }
