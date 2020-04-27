@@ -2,9 +2,19 @@ package main
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
+
+func timer(f func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+	start := time.Now()
+	return func(w http.ResponseWriter, r *http.Request) {
+		f(w, r)
+		log.Printf("%s took %v\n", r.RequestURI, time.Since(start))
+	}
+}
 
 func getAllBooks(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
