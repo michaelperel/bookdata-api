@@ -41,6 +41,35 @@ func getAllBooks(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func getAllBooksByTitle(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	pathParams := mux.Vars(r)
+	limit, err := getLimitParam(r)
+	skip, err := getSkipParam(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "invalid datatype for parameter"}`))
+		return
+	}
+	title := pathParams["title"]
+	data := books.GetAllBooks(limit, skip)
+	filteredData := []*loader.BookData{}
+	for _, b := range *data {
+		if strings.Contains(strings.ToLower(b.Title), strings.ToLower(title)) {
+			filteredData = append(filteredData, b)
+		}
+	}
+	b, err := json.Marshal(filteredData)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error": "error marshalling data"}`))
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	w.Write(b)
+	return
+}
+
 func getAllBooksByAuthor(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	pathParams := mux.Vars(r)
@@ -51,11 +80,11 @@ func getAllBooksByAuthor(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(`{"error": "invalid datatype for parameter"}`))
 		return
 	}
-	title := pathParams["author"]
+	author := pathParams["author"]
 	data := books.GetAllBooks(limit, skip)
 	filteredData := []*loader.BookData{}
 	for _, b := range *data {
-		if strings.Contains(strings.ToLower(b.Title), strings.ToLower(title)) {
+		if strings.Contains(strings.ToLower(b.Authors), strings.ToLower(author)) {
 			filteredData = append(filteredData, b)
 		}
 	}
